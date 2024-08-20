@@ -10,7 +10,7 @@ app.use(express.json());
 
 const mongoose = require('mongoose');
 
-const DB = "mongodb+srv://spuspam111:Sp123456@cluster0.0taaaup.mongodb.net/furniro?retryWrites=true&w=majority";
+const DB = "mongodb+srv://spuspam111:Sp123456@cluster0.0taaaup.mongodb.net/tasker?retryWrites=true&w=majority";
 mongoose.connect(DB)
     .then(() => {
         console.log("Connected to MongoDB");
