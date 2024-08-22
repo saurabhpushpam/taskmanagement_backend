@@ -304,7 +304,7 @@ const reminder = async () => {
 
 
 // Schedule the cron job to run every day at 12:00 AM
-cron.schedule('37 0 * * *', () => {
+cron.schedule('0 0 * * *', () => {
   console.log('Running midnight at 12:00 AM task reminder cron job');
   reminder();
 });
