@@ -31,10 +31,10 @@ const userSchema = mongoose.Schema({
 
   },
 
-  category: {
-    type: String,
+  // category: {
+  //   type: String,
 
-  }
+  // }
 
 },
   {

@@ -43,7 +43,7 @@ const register_user = async (req, res) => {
 
         if (useremail) {
 
-            res.status(200).send({ success: false, msg: "This email is already exist" });
+            res.status(201).send({ success: false, msg: "This email is already exist" });
 
         }
 

@@ -1,5 +1,7 @@
 const task = require('../models/TaskModel');
 const user = require("../models/userModel");
+const nodemailer = require('nodemailer');
+const cron = require('node-cron');
 
 const bcryptjs = require('bcryptjs');
 
@@ -72,7 +74,7 @@ const getallusertask = async (req, res) => {
     // console.log('object', req.user);
 
     const userid = req.user._id;
-    console.log(userid);
+    // console.log(userid);
 
     const validuser = await user.findById(userid);
     if (!validuser) {
@@ -220,6 +222,105 @@ const updatetask = async (req, res) => {
 }
 
 
+
+
+
+
+
+// const sendremindermail = async (username, email, token) => {
+
+const sendremindermail = async (username, email, taskName) => {
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      requireTLS: true,
+      auth: {
+        user: config.emailUser,
+        pass: config.emailPassword
+      }
+    });
+
+    const mailOption = {
+      from: config.emailUser,
+      to: email,
+      subject: 'Task Reminder',
+      html: `<p>Hi <b>${username}</b>, <br/> this is a reminder for your task: <strong>${taskName}</strong>. <br/> The due date is today. Please make sure to complete it on time.</p>`
+
+      // html: '<p> Hii ' + username + ', please copy the link <a href= "http://localhost:3000/api/reset-password?token=' + token + '"> and reset your password </a>'
+    }
+
+    transporter.sendMail(mailOption, function (error, info) {
+      if (error) {
+        console.log(error);
+
+      }
+      else {
+        console.log("Mail has been sent : ", info.response);
+      }
+    });
+
+
+
+  } catch (error) {
+    res.status(400).send({ success: false, msg: error.message });
+  }
+}
+
+
+
+const reminder = async () => {
+  try {
+    // Get the current date and time
+    const now = new Date();
+
+    // Set the time to 00:00:00 for comparison
+    const todayStart = new Date(now.setHours(0, 0, 0, 0));
+    const todayEnd = new Date(todayStart);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    // Find all tasks due today and still pending
+    const dueTasks = await task.find({
+      status: 'pending',
+      duedate: {
+        $gte: todayStart,
+        $lt: todayEnd,
+      },
+    });
+
+    for (const dueTask of dueTasks) {
+      const userData = await user.findById(dueTask.userid);
+
+      if (userData) {
+        await sendremindermail(userData.name, userData.email, dueTask.taskname);
+      }
+    }
+  } catch (error) {
+    console.log('Error while checking for due tasks:', error.message);
+  }
+};
+
+
+// Schedule the cron job to run every day at 12:00 AM
+cron.schedule('37 0 * * *', () => {
+  console.log('Running midnight at 12:00 AM task reminder cron job');
+  reminder();
+});
+
+// // Schedule the cron job to run every day at 11:30 PM
+// cron.schedule('43 23 * * *', () => {
+//   console.log('Running 11:30 PM task reminder cron job');
+//   reminder();
+// });
+
+
+
+
+
+
+
 module.exports = {
   addtask,
   getallusertask,
@@ -227,6 +328,7 @@ module.exports = {
   getcompletetask,
   getpendingtask,
   deletetask,
-  updatetask
+  updatetask,
+  reminder
 
 }
